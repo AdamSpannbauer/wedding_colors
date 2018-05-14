@@ -12,8 +12,13 @@ image_path = 'images/party_pink.jpg'
 data_path = 'data/party_pink.csv'
 
 # recolor labeled areas buy single rgb value
-# new_colors_rgb = {'bridesmaids': [34, 178, 173]}
-new_colors_rgb = {'bridesmaids': [81, 160, 25]}
+new_colors_rgb = \
+    {
+        'groomsmen': [42, 86, 38],
+        'groom': [163, 75, 183],
+        'bridesmaids': [34, 178, 173],
+        # 'bride': [232, 9, 183] # bride doesn't work too well
+    }
 
 # read in image and recolor data
 image = cv2.imread(image_path)
@@ -21,10 +26,15 @@ recolor_data = pd.read_csv(data_path)
 
 # copy image for safe keeping and blur
 image_og = np.copy(image)
-blurred = cv2.GaussianBlur(image, (3, 3), 0,0)
+blurred = cv2.GaussianBlur(image, (3, 3), 0, 0)
 
 # get image dims
 im_h, im_w = image.shape[:2]
+
+
+def scale_between(arr, a, b):
+    return (b - a) * (arr - arr.min()) / (arr.max() - arr.min())
+
 
 for i, row in recolor_data.iterrows():
     if row['label'] in new_colors_rgb.keys():
@@ -54,15 +64,23 @@ for i, row in recolor_data.iterrows():
     color_masked = cv2.bitwise_and(masked, masked, mask=color_mask)
 
     # recenter image around destination color
-    lab_patch = cv2.cvtColor(new_color_patch, cv2.COLOR_BGR2LAB)
+    lab_patch = np.float32(cv2.cvtColor(new_color_patch, cv2.COLOR_BGR2LAB))
     dst_l, dst_a, dst_b = cv2.split(lab_patch)
 
-    color_masked_lab = cv2.cvtColor(color_masked, cv2.COLOR_BGR2LAB)
+    color_masked_lab = np.float32(cv2.cvtColor(color_masked, cv2.COLOR_BGR2LAB))
     src_l, src_a, src_b = cv2.split(color_masked_lab)
 
     out_l = src_l - src_l.mean() + dst_l.mean()
     out_a = src_a - src_a.mean() + dst_a.mean()
     out_b = src_b - src_b.mean() + dst_b.mean()
+
+    # rescale if outside of 0-255 range
+    if out_l.max() > 255 and out_l.min() < 0:
+        out_l = scale_between(out_l, 0, 255)
+    elif out_l.max() > 255:
+        out_l = scale_between(out_l, out_l.min(), 255)
+    elif out_l.min() < 0:
+        out_l = scale_between(out_l, 0, out_l.max())
 
     # recombine color channels and convert to BGR for display
     recolored = cv2.merge([out_l, out_a, out_b])

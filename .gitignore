@@ -4,6 +4,7 @@ __pycache__/
 *$py.class
 
 .idea
+readme/social_media_graphics.key
 
 # C extensions
 *.so

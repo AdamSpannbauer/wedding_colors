@@ -37,7 +37,7 @@ def gui_cropper(image, label=''):
     """
     im_h, im_w = image.shape[:2]
 
-    cv2.namedWindow(label)
+    cv2.namedWindow(label, cv2.WINDOW_NORMAL)
     cv2.createTrackbar('x', label, 0, im_w, do_nothing)
     cv2.createTrackbar('y', label, 0, im_h, do_nothing)
     cv2.createTrackbar('w', label, 0, im_w, do_nothing)
@@ -79,7 +79,7 @@ def gui_hsv_picker(image, label=''):
     # h, s, v = 100, 100, 100
 
     # create track bars
-    cv2.namedWindow(label)
+    cv2.namedWindow(label, cv2.WINDOW_NORMAL)
     cv2.createTrackbar('low-h', label, 0, 179, do_nothing)
     cv2.createTrackbar('low-s', label, 0, 255, do_nothing)
     cv2.createTrackbar('low-v', label, 0, 255, do_nothing)

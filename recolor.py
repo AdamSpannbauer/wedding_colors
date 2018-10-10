@@ -6,23 +6,25 @@ use output data of filter_rois.py to apply color transformation
 import pandas as pd
 import numpy as np
 import cv2
+import argparse
 
-# hardcoded inputs for now
-image_path = 'images/party_pink.jpg'
-data_path = 'data/party_pink.csv'
+parser = argparse.ArgumentParser(description='Apply color transformations to an area of an image')
+parser.add_argument('-i', '--image', dest='image_path', help='Path to input image to be modified', required=True)
+parser.add_argument('-d', '--data', dest='data_path',
+                    help='Path to csv specifying regions to be modified', required=True)
+parser.add_argument('-c', '--colors', dest='colors',
+                    help='Path to csv specifying new colors (in rgb) to apply to regions')
+
+args = parser.parse_args()
 
 # recolor labeled areas buy single rgb value
-new_colors_rgb = \
-    {
-        'groomsmen': [42, 86, 38],
-        'groom': [163, 75, 183],
-        'bridesmaids': [34, 178, 173],
-        # 'bride': [232, 9, 183] # bride doesn't work too well
-    }
+new_colors_rgb = pd.read_csv(args.colors).to_dict()
+for k in new_colors_rgb.keys():
+    new_colors_rgb[k] = list(new_colors_rgb[k].values())
 
 # read in image and recolor data
-image = cv2.imread(image_path)
-recolor_data = pd.read_csv(data_path)
+image = cv2.imread(args.image_path)
+recolor_data = pd.read_csv(args.data_path)
 
 # copy image for safe keeping and blur
 image_og = np.copy(image)
